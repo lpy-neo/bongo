@@ -3,9 +3,11 @@ package bongo
 import (
 	"errors"
 	// "fmt"
+	"time"
+
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	"time"
+
 	// "math"
 	"strings"
 )
@@ -225,9 +227,20 @@ func (c *Collection) Find(query interface{}) *ResultSet {
 }
 
 func (c *Collection) FindOne(query interface{}, doc interface{}) error {
+	sess := c.Connection.Session.Clone()
+	defer sess.Close()
+	col := c.collectionOnSession(sess)
+
+	// Count for testing
+	q := col.Find(query)
+
+	results := new(ResultSet)
+
+	results.Query = q
+	results.Params = query
+	results.Collection = c
 
 	// Now run a find
-	results := c.Find(query)
 	results.Query.Limit(1)
 
 	hasNext := results.Next(doc)
