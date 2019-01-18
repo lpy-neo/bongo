@@ -182,8 +182,11 @@ func (c *Collection) Save(doc Document) error {
 }
 
 func (c *Collection) FindById(id bson.ObjectId, doc interface{}) error {
+	sess := c.Connection.Session.Clone()
+	defer sess.Close()
+	col := c.collectionOnSession(sess)
 
-	err := c.Collection().FindId(id).One(doc)
+	err := col.FindId(id).One(doc)
 
 	// Handle errors coming from mgo - we want to convert it to a DocumentNotFoundError so people can figure out
 	// what the error type is without looking at the text
